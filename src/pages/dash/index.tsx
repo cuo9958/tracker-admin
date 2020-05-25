@@ -2,7 +2,7 @@
  * 首页
  */
 import React from 'react';
-import { Button, Form, Input, Layout, Table, Notification, Dialog } from 'element-react';
+import { Button, Form, Input, Layout, Table, Notification, Dialog, Pagination } from 'element-react';
 import './index.less';
 import request from '../../services/request';
 
@@ -46,25 +46,25 @@ export default class extends React.Component<iReactRoute, iState> {
         {
             label: '平台',
             prop: 'platform',
-            width: 100,
+            width: 90,
             className: 'list_small',
         },
         {
             label: '版本',
             prop: 'version',
-            width: 100,
+            width: 70,
             className: 'list_small',
         },
         {
             label: '用户id',
             prop: 'clientid',
-            width: 100,
+            width: 150,
             className: 'list_small',
         },
         {
             label: '时间',
-            prop: 'time',
-            width: 190,
+            prop: 'createTime',
+            width: 150,
             className: 'list_small',
         },
         {
@@ -111,12 +111,7 @@ export default class extends React.Component<iReactRoute, iState> {
                     <Table style={{ width: '100%' }} columns={this.columns} data={this.state.list} border={true} />
                 </div>
                 <div className="footer">
-                    <Button type="primary" onClick={() => this.prePage()} size="mini">
-                        上一页
-                    </Button>
-                    <Button type="primary" onClick={() => this.nextPage()} size="mini">
-                        下一页
-                    </Button>
+                    <Pagination layout="prev, pager, next, total" total={this.state.total} pageSize={20} onCurrentChange={this.onCurrentChange} />
                 </div>
                 <Dialog title="提示" size="small" visible={this.state.dialogVisible} onCancel={() => this.setState({ dialogVisible: false })}>
                     <Dialog.Body>
@@ -155,10 +150,11 @@ export default class extends React.Component<iReactRoute, iState> {
     pageindex = 0;
     async getList(pageindex?: number) {
         try {
-            if (pageindex) this.pageindex = pageindex;
+            if (pageindex || pageindex === 0) this.pageindex = pageindex;
             let data = await request.get('/logs', Object.assign({ start: this.pageindex }, this.state.form));
             this.setState({
-                list: data,
+                list: data.list,
+                total: data.count,
             });
         } catch (error) {
             console.log(error);
@@ -167,15 +163,9 @@ export default class extends React.Component<iReactRoute, iState> {
             });
         }
     }
-    prePage() {
-        this.pageindex--;
-        if (this.pageindex < 0) this.pageindex = 0;
-        this.getList();
-    }
-    nextPage() {
-        this.pageindex++;
-        this.getList();
-    }
+    onCurrentChange = (currentPage: number) => {
+        this.getList(currentPage - 1);
+    };
     async searchData() {
         this.getList(0);
     }
